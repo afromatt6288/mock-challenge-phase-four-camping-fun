@@ -34,15 +34,15 @@ class Campers(Resource):
     def get(self):
         response_dict_list = []
         for n in Camper.query.all():
-            response_dict_list.append(n.to_dict())
+            response_dict_list.append(n.to_dict(only=('id', 'name', 'age')))
         response = make_response(response_dict_list, 200)
         return response
 
     def post(self):
         try:
-            new_record = Campers(
+            new_record = Camper(
                 name=request.form.get('name'),
-                age=request.form.get('age'), 
+                age=int(request.form.get('age')), 
                 )
             db.session.add(new_record)
             db.session.commit()
@@ -57,7 +57,7 @@ class CampersById(Resource):
     def get(self, id):
         res = Camper.query.filter(Camper.id == id).first()
         if res:
-            response_dict = res.to_dict()
+            response_dict = res.to_dict(rules=('activities',))
             response = make_response(jsonify(response_dict, 200))
             return response
         return make_response(jsonify({"error": "Camper not found"}), 404)
@@ -127,7 +127,7 @@ class Signups(Resource):
             db.session.commit()
         except Exception as e:
             return make_response({"errors": [e.__str__()]}, 422)
-        response = make_response(jsonify(new_record.to_dict()), 201)
+        response = make_response(jsonify(new_record.to_dict()['activity']), 201)
         return response 
 
 api.add_resource(Signups, '/signups')
